@@ -1,3 +1,5 @@
+### Using Tailwind CSS in Lit and importing CSS in a modular way.
+
 ## Install
 
 ```console

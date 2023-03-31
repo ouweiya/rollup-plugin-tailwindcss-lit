@@ -1,6 +1,6 @@
 {
   "name": "rollup-plugin-tailwindcss-lit",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "type": "module",
   "exports": {
@@ -25,7 +25,10 @@
   ],
   "files": [
     "!.github",
-    "!deprecated"
+    "!deprecated",
+    "dist",
+    "tsconfig.json",
+    "src"
   ],
   "author": "",
   "license": "MIT",
