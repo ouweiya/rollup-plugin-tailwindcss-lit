@@ -1,0 +1,49 @@
+{
+  "name": "rollup-plugin-tailwindcss-lit",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "exports": {
+    "types": "./index.d.ts",
+    "import": "./dist/index.js",
+    "default": "./dist/index.js"
+  },
+  "scripts": {
+    "watch": "rimraf dist && tsc --watch",
+    "tsc": "rimraf dist && tsc",
+    "build": "rollup -c --configPlugin typescript"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ouweiya/rollup-plugin-tailwindcss-lit"
+  },
+  "keywords": [
+    "rollup",
+    "plugin",
+    "tailwindcss",
+    "lit"
+  ],
+  "files": [
+    "!.github",
+    "!deprecated"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "lit": "^2.7.0",
+    "postcss": "^8.4.21",
+    "postcss-load-config": "^4.0.1",
+    "tailwindcss": "^3.2.7"
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.0.1",
+    "@rollup/plugin-typescript": "^11.0.0",
+    "@rollup/pluginutils": "^5.0.2",
+    "@tsconfig/node18-strictest-esm": "^1.0.1",
+    "@types/node": "^18.15.10",
+    "rimraf": "^4.4.1",
+    "rollup": "^3.20.2",
+    "tslib": "^2.5.0",
+    "typescript": "^5.0.2"
+  }
+}
