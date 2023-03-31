@@ -19,7 +19,6 @@ const pluginTailwindcssLit = (): Plugin => {
 
         result.messages.forEach(msg => {
           if (msg.type === 'dependency') {
-            // console.log('dependency', msg['file']);
             this.addWatchFile(msg['file']);
           }
         });
