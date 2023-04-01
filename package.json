@@ -1,13 +1,13 @@
 {
   "name": "rollup-plugin-tailwindcss-lit",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    "types": "./index.d.ts",
+    "types": "./dist/index.d.ts",
     "import": "./dist/index.js",
     "default": "./dist/index.js"
   },
