@@ -23,7 +23,7 @@ const pluginTailwindcssLit = (): Plugin => {
           }
         });
 
-        const csscode = `import { css } from 'lit';\nexport default css\`\n${result.css}\``;
+        const csscode = `import { css } from 'lit';\nconst styles = css\`${result.css}\`;\nexport default styles;`;
         return {
           code: csscode,
           map: result.map.toString(),
