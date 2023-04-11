@@ -1,6 +1,6 @@
 {
   "name": "rollup-plugin-tailwindcss-lit",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "",
   "type": "module",
   "main": "./dist/index.js",
@@ -36,6 +36,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@rollup/pluginutils": "^5.0.2",
     "lit": "^2.7.0",
     "postcss": "^8.4.21",
     "postcss-load-config": "^4.0.1",
@@ -44,7 +45,6 @@
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.0.1",
     "@rollup/plugin-typescript": "^11.0.0",
-    "@rollup/pluginutils": "^5.0.2",
     "@tsconfig/node18-strictest-esm": "^1.0.1",
     "@types/node": "^18.15.10",
     "rimraf": "^4.4.1",
