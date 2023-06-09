@@ -2,6 +2,7 @@ import postcss from 'postcss';
 import type { Plugin, TransformResult } from 'rollup';
 import postcssConfig from 'postcss-load-config';
 import { createFilter } from '@rollup/pluginutils';
+import discardComments from 'postcss-discard-comments';
 
 const pluginTailwindcssLit = (): Plugin => {
   const filter = createFilter(['**/*.css']);
@@ -11,7 +12,7 @@ const pluginTailwindcssLit = (): Plugin => {
     async transform(code, id): Promise<TransformResult> {
       if (filter(id)) {
         const config = await postcssConfig();
-        const result = await postcss(config.plugins).process(code, {
+        const result = await postcss([discardComments({ removeAll: true }), ...config.plugins]).process(code, {
           from: id,
           to: id,
           map: { inline: false, annotation: false },

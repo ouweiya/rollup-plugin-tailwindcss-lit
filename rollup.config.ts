@@ -1,10 +1,9 @@
 import typescript from '@rollup/plugin-typescript';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
-// import type { RollupOptions } from 'rollup';
+import type { RollupOptions } from 'rollup';
 import commonjs from '@rollup/plugin-commonjs';
-import { defineConfig } from 'rollup';
 
-const config = defineConfig({
+const config: RollupOptions = {
   input: ['src/index.ts'],
   output: {
     format: 'es',
@@ -23,6 +22,6 @@ const config = defineConfig({
   //   warn(warning);
   // },
   plugins: [typescript(), nodeResolve(), commonjs()],
-});
+};
 
 export default config;
