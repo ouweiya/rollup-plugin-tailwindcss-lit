@@ -2,6 +2,16 @@ import postcss from 'postcss';
 import postcssConfig from 'postcss-load-config';
 import { createFilter } from '@rollup/pluginutils';
 import discardComments from 'postcss-discard-comments';
+const postcssDoubleEscape = {
+    postcssPlugin: 'postcss-double-escape',
+    Once(root) {
+        root.walkRules(rule => {
+            rule.selectors = rule.selectors.map(selector => {
+                return selector.replace(/\\:/g, '\\\\:');
+            });
+        });
+    },
+};
 const pluginTailwindcssLit = () => {
     const filter = createFilter(['**/*.css']);
     return {
@@ -9,7 +19,7 @@ const pluginTailwindcssLit = () => {
         async transform(code, id) {
             if (filter(id)) {
                 const config = await postcssConfig();
-                const result = await postcss([discardComments({ removeAll: true }), ...config.plugins]).process(code, {
+                const result = await postcss([discardComments({ removeAll: true }), ...config.plugins, postcssDoubleEscape]).process(code, {
                     from: id,
                     to: id,
                     map: { inline: false, annotation: false },
