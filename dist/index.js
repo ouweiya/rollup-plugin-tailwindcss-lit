@@ -7,7 +7,7 @@ const postcssDoubleEscape = {
     Once(root) {
         root.walkRules(rule => {
             rule.selectors = rule.selectors.map(selector => {
-                return selector.replace(/\\:/g, '\\\\:');
+                return selector.replace(/\\/g, '\\\\');
             });
         });
     },
