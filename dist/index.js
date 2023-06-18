@@ -19,7 +19,11 @@ const pluginTailwindcssLit = () => {
         async transform(code, id) {
             if (filter(id)) {
                 const config = await postcssConfig();
-                const result = await postcss([discardComments({ removeAll: true }), ...config.plugins, postcssDoubleEscape]).process(code, {
+                const result = await postcss([
+                    discardComments({ removeAll: true }),
+                    ...config.plugins,
+                    postcssDoubleEscape,
+                ]).process(code, {
                     from: id,
                     to: id,
                     map: { inline: false, annotation: false },
