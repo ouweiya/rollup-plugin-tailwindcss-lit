@@ -1,7 +1,6 @@
 {
     "include": ["src/**/*.ts"],
     "compilerOptions": {
-        // "indent": 2,
         "rootDir": "src",
         "declaration": true,
         "target": "esnext",
