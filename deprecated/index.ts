@@ -133,3 +133,5 @@ export default pluginTailwindcss;
 
 // `export default ${JSON.stringify(csstxt)};`,
 // map: result.map as unknown as SourceMapInput,
+const filter = createFilter(['**/*.css']);
+import { createFilter } from '@rollup/pluginutils';
