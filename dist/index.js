@@ -15,7 +15,7 @@ const pluginTailwindcssLit = () => {
     return {
         name: 'rollup-plugin-tailwindcss-lit',
         async transform(code, id) {
-            if (/\.css$/.test(id)) {
+            if (id.endsWith('.css')) {
                 const config = await postcssConfig();
                 const result = await postcss([
                     discardComments({ removeAll: true }),
