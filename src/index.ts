@@ -5,7 +5,7 @@ import discardComments from 'postcss-discard-comments';
 
 const postcssDoubleEscape: PostcssPlugin = {
     postcssPlugin: 'postcss-double-escape',
-    Once(root) {
+    OnceExit(root) {
         root.walkRules(rule => {
             rule.selectors = rule.selectors.map(selector => {
                 return selector.replace(/\\/g, '\\\\');
