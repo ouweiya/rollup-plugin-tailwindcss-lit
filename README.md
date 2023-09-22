@@ -72,6 +72,9 @@ static styles = [
 ];
 ```
 
+Read the [Tailwind CSS](https://tailwindcss.com/docs/functions-and-directives#apply) documentation to understand the usage of the `@apply` directives, for example: `@apply hover:bg-blue-700`.
+
+
 #### Inline CSS should always include a selector.
 
 ##### Wrong Way
