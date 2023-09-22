@@ -37,7 +37,7 @@ It's recommended to use the [`@rollup/plugin-alias`](https://github.com/rollup/p
 ```js
 plugins: [
     ...
-    alias({ entries: [{ find: 'index.css', replacement: 'absolute path' }] }),
+    alias({ entries: [{ find: 'index.css', replacement: 'File path' }] }),
 ]
 ```
 
