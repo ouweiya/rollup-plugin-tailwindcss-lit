@@ -41,7 +41,7 @@ plugins: [
 ]
 ```
 
-### Compile inline CSS
+#### Compile inline CSS
 
 ```js
 static styles = [
@@ -55,7 +55,7 @@ static styles = [
 ];
 ```
 
-### After compilation
+#### After compilation
 
 ```js
 static styles = [
@@ -72,9 +72,9 @@ static styles = [
 ];
 ```
 
-### Inline CSS should always include a selector.
+#### Inline CSS should always include a selector.
 
-#### Wrong Way
+##### Wrong Way
 
 ```js
 const other = css`@apply text-blue-50`;
@@ -89,7 +89,7 @@ static styles = [
 ];
 ```
 
-#### Right Way
+##### Right Way
 
 ```js
 const other = css`:host { @apply text-blue-50 }`;
