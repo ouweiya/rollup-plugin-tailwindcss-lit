@@ -32,7 +32,7 @@ class One extends LitElement {
 }
 ```
 
-It's recommended to use the `@rollup/plugin-alias` plugin to avoid the long path of `index.css`.
+It's recommended to use the [`@rollup/plugin-alias`](https://github.com/rollup/plugins/tree/master/packages/alias#readme) plugin to avoid the long path of `index.css`.
 
 ```js
 plugins: [
