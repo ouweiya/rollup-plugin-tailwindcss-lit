@@ -74,6 +74,12 @@ static styles = [
 
 The [`@apply`](https://tailwindcss.com/docs/functions-and-directives#apply) directive supports multiple features, for example: `@apply hover:bg-blue-700`.
 
+#### Tailwind CSS IntelliSense supports CSS tags.
+
+```json
+"tailwindCSS.experimental.classRegex": ["css\\s*`([^`]*)"]
+```
+
 #### Inline CSS should always include a selector.
 
 ##### Wrong Way
