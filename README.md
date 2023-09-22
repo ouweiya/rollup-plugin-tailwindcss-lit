@@ -1,65 +1,135 @@
-### Using Tailwind CSS in Lit and importing CSS in a modular way.
+### Rollup plugin to use Tailwind CSS in Lit.
 
 ## Install
 
 ```console
-npm i rollup-plugin-tailwindcss-lit -D
+npm i rollup-plugin-tailwindcss-lit
 ```
 
 ## Usage
 
-**`rollup.config.js`**
+### rollup.config.js
 
 ```js
 import tailwindcss from 'rollup-plugin-tailwindcss-lit';
 
 export default {
-  ...
-  plugins: [tailwindcss()],
+    ...
+    plugins: [tailwindcss()],
 };
 ```
 
 ```js
-import csstxt from './index.css';
+import styles from 'index.css';
 
 @customElement('my-element')
 class One extends LitElement {
-  static styles = [csstxt];
+    static styles = [styles];
 
-  render() {
-    return html`<p class="text-blue-500">Hello from my template.</p>`;
-  }
+    render() {
+        return html`<p class="text-blue-500">Hello</p>`;
+    }
 }
 ```
 
-## `postcss.config.js`
+It's recommended to use the `@rollup/plugin-alias` plugin to avoid the long path of `index.css`.
 
-Use the ES module for the configuration file and add `"type": "module"` in package.json.
+```js
+plugins: [
+    ...
+    alias({ entries: [{ find: 'index.css', replacement: 'absolute path' }] }),
+]
+```
 
-Minimize CSS code after compiling tailwindcss.
+### Compile inline CSS
+
+```js
+static styles = [
+    styles,
+    css`
+        :host {
+            @apply text-blue-600;
+            width: 100px;
+        }
+    `,
+];
+```
+
+### After compilation
+
+```js
+static styles = [
+    styles,
+    css`
+        :host {
+            width: 100px;
+        }
+        :host {
+            --tw-text-opacity: 1;
+            color: rgb(37 99 235 / var(--tw-text-opacity));
+        }
+    `,
+];
+```
+
+### Inline CSS should always include a selector.
+
+#### Wrong Way
+
+```js
+const other = css`@apply text-blue-50`;
+
+static styles = [
+    styles,
+    css`
+        :host {
+            color: ${other};
+        }
+    `,
+];
+```
+
+#### Right Way
+
+```js
+const other = css`:host { @apply text-blue-50 }`;
+
+static styles = [
+    styles,
+    css`
+        p {
+            color: red;
+        }
+        ${other}
+    `,
+];
+```
+
+
+## postcss.config.js
 
 ```js
 import tailwindcss from 'tailwindcss';
-import cssnano from 'cssnano';
 
 export default {
-  plugins: [tailwindcss, cssnano({ preset: ['default', { discardComments: { removeAll: true } }] })],
+    plugins: [tailwindcss],
 };
 ```
 
 ## Dev and Prod
 
+Use different plugins for different environments. It's recommended to use the Rollup environment command, `--environment NODE_ENV:dev`.
+[environment-values](https://rollupjs.org/command-line-interface/#environment-values)
+
 ```js
 import tailwindcss from 'tailwindcss';
-import cssnano from 'cssnano';
+import cssnano from 'cssnano';  // Minify CSS
+import remToPx from '@thedutchcoder/postcss-rem-to-px';  // Convert rem units to px
 
-const isDevelopment = process.argv.some(arg => /--watch|-w|dev-server/.test(arg));
+const plugins =
+    process.env['NODE_ENV'] === 'build'
+        ? [tailwindcss, remToPx, cssnano({ preset: ['default', { discardComments: { removeAll: true } }] })]
+        : [tailwindcss, remToPx];
 
-const plugins = isDevelopment
-  ? [tailwindcss]
-  : [tailwindcss, cssnano({ preset: ['default', { discardComments: { removeAll: true } }] })];
-
-export default {
-  plugins,
-};
+export default { plugins };
 ```
