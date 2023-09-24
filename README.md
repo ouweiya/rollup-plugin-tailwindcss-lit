@@ -81,7 +81,7 @@ The [`@apply`](https://tailwindcss.com/docs/functions-and-directives#apply) dire
 ```
 
 #### 自定义提取逻辑
-Tailwind CSS 默认提取文件中所有类名编译到`index.css`文件，但是`css\`xxx\``标签中的类名为内联样式，不应该被打包进`index.css`中，所以需要排除`css\`xxx\``中的内容被提取编译。
+Tailwind CSS 默认提取文件中所有类名编译到`index.css`文件，但是``css`xxx```标签中的类名为内联样式，不应该被打包进`index.css`中，所以需要排除`css`xxx``中的内容被提取编译。
 
 ```js
 tailwind.config.js
