@@ -10,18 +10,22 @@ import _generate from '@babel/generator';
 import { parse } from '@babel/parser';
 
 import safe from 'postcss-safe-parser';
-import tailwind from 'tailwindcss';
+// import tailwind from 'tailwindcss';
 
 const traverse = _traverse.default;
 const generate = _generate.default;
 
-const pluginTailwindcssLit = (): Plugin => {
+const pluginTailwindcssLit = async (): Plugin => {
+    const config = await postcssConfig();
+    // console.log('config', config);
+
     // Escape
     const postcssDoubleEscape: PostcssPlugin = {
         postcssPlugin: 'postcss-double-escape',
         OnceExit(root) {
             root.walkRules(rule => {
                 rule.selectors = rule.selectors.map(selector => {
+                    console.log('selector', selector);
                     return selector.replace(/\\/g, '\\\\');
                 });
             });
@@ -38,17 +42,22 @@ const pluginTailwindcssLit = (): Plugin => {
         });
 
         const promises = applyDirectives.map(({ atRule, parentRule }) => {
+            // parentRule.selector = parentRule.selector.replace(/\\/g, '\\\\');
             if (parentRule.nodes.length === 1) {
-                return postcss([tailwind])
+                // 条件一
+                console.log("条件一");
+                return postcss([discardComments({ removeAll: true }), ...config.plugins, /* postcssDoubleEscape */])
                     .process(parentRule, { from: undefined })
                     .then(result => {
                         parentRule.replaceWith(result.root);
                     });
             } else {
+                // 条件二
+                console.log("条件二");
                 const newRule = postcss.rule({ selector: parentRule.selector });
                 newRule.append(atRule.clone());
 
-                return postcss([tailwind])
+                return postcss([discardComments({ removeAll: true }), ...config.plugins, /* postcssDoubleEscape */])
                     .process(newRule, { from: undefined })
                     .then(result => {
                         parentRule.parent.insertAfter(parentRule, result.root);
@@ -79,7 +88,6 @@ const pluginTailwindcssLit = (): Plugin => {
                         }
                     },
                 });
-                // console.log('processNodes:', processNodes.length);
 
                 for (let path of processNodes) {
                     const originalCSS = generate(path.node.quasi).code.slice(1, -1);
@@ -94,7 +102,6 @@ const pluginTailwindcssLit = (): Plugin => {
 
             // Compile CSS module
             if (id.endsWith('.css')) {
-                const config = await postcssConfig();
                 const result = await postcss([
                     discardComments({ removeAll: true }),
                     ...config.plugins,
@@ -118,3 +125,7 @@ const pluginTailwindcssLit = (): Plugin => {
 };
 
 export default pluginTailwindcssLit;
+
+
+// 修改提取逻辑
+// 升级插件方式

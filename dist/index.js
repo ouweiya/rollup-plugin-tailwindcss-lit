@@ -5,15 +5,16 @@ import _traverse from '@babel/traverse';
 import _generate from '@babel/generator';
 import { parse } from '@babel/parser';
 import safe from 'postcss-safe-parser';
-import tailwind from 'tailwindcss';
 const traverse = _traverse.default;
 const generate = _generate.default;
-const pluginTailwindcssLit = () => {
+const pluginTailwindcssLit = async () => {
+    const config = await postcssConfig();
     const postcssDoubleEscape = {
         postcssPlugin: 'postcss-double-escape',
         OnceExit(root) {
             root.walkRules(rule => {
                 rule.selectors = rule.selectors.map(selector => {
+                    console.log('selector', selector);
                     return selector.replace(/\\/g, '\\\\');
                 });
             });
@@ -27,16 +28,18 @@ const pluginTailwindcssLit = () => {
         });
         const promises = applyDirectives.map(({ atRule, parentRule }) => {
             if (parentRule.nodes.length === 1) {
-                return postcss([tailwind])
+                console.log("条件一");
+                return postcss([discardComments({ removeAll: true }), ...config.plugins,])
                     .process(parentRule, { from: undefined })
                     .then(result => {
                     parentRule.replaceWith(result.root);
                 });
             }
             else {
+                console.log("条件二");
                 const newRule = postcss.rule({ selector: parentRule.selector });
                 newRule.append(atRule.clone());
-                return postcss([tailwind])
+                return postcss([discardComments({ removeAll: true }), ...config.plugins,])
                     .process(newRule, { from: undefined })
                     .then(result => {
                     parentRule.parent.insertAfter(parentRule, result.root);
@@ -73,7 +76,6 @@ const pluginTailwindcssLit = () => {
                 return { code: output.code, map: output.map };
             }
             if (id.endsWith('.css')) {
-                const config = await postcssConfig();
                 const result = await postcss([
                     discardComments({ removeAll: true }),
                     ...config.plugins,
