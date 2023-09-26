@@ -35,7 +35,13 @@ class One extends LitElement {
 Suggest using [`@rollup/plugin-alias`](https://github.com/rollup/plugins/tree/master/packages/alias#readme) to shorten import paths.
 
 ```js
-plugins: [alias({ entries: [{ find: 'index.css', replacement: 'File path' }] }), ...];
+import { fileURLToPath } from 'node:url';
+import { dirname, resolve } from 'node:path';
+
+const __filename = fileURLToPath(import.meta.url);
+const cssPath = resolve(dirname(__filename), 'src/index.css'); // Absolute path
+
+plugins: [alias({ entries: [{ find: 'index.css', replacement: 'cssPath' }] }), ...];
 ```
 
 #### Compile inline CSS
