@@ -55,7 +55,9 @@ const pluginTailwindcssLit = async (): Promise<Plugin<any>> => {
                 return postcss([discardComments({ removeAll: true }), ...config.plugins, postcssDoubleEscape])
                     .process(newRule, { from: undefined })
                     .then(result => {
-                        parentRule.selector = parentRule.selector.replace(/\\/g, '\\\\');
+                        if (!/\\\\/.test(parentRule.selector)) {
+                            parentRule.selector = parentRule.selector.replace(/\\/g, '\\\\');
+                        }
                         parentRule.parent.insertAfter(parentRule, result.root);
                         atRule.remove();
                     });
