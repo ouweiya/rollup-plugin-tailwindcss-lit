@@ -35,10 +35,7 @@ class One extends LitElement {
 It's recommended to use the [`@rollup/plugin-alias`](https://github.com/rollup/plugins/tree/master/packages/alias#readme) plugin to avoid the long path of `index.css`.
 
 ```js
-plugins: [
-    ...
-    alias({ entries: [{ find: 'index.css', replacement: 'File path' }] }),
-]
+plugins: [...alias({ entries: [{ find: 'index.css', replacement: 'File path' }] })];
 ```
 
 #### Compile inline CSS
@@ -80,24 +77,6 @@ The [`@apply`](https://tailwindcss.com/docs/functions-and-directives#apply) dire
 "tailwindCSS.experimental.classRegex": ["css\\s*`([^`]*)`"]
 ```
 
-#### 自定义提取逻辑
-Tailwind CSS 默认提取文件中所有类名编译到`index.css`文件，但是``css`xxx```标签中的类名为内联样式，不应该被打包进`index.css`中，所以需要排除``css`xxx` ``中的内容被提取编译。 a
-
-```js
-tailwind.config.js
-
-module.exports = {
-  content: {
-    files: ['./src/**/*.ts'],
-    extract: {
-      ts: (content) => {
-        return content.match(/[^<>"'`\s]*/)
-      }
-    }
-  },
-}
-```
-
 #### Inline CSS should always include a selector.
 
 ##### Wrong Way
@@ -131,7 +110,6 @@ static styles = [
 ];
 ```
 
-
 ## postcss.config.js
 
 ```js
@@ -149,8 +127,8 @@ Use different plugins for different environments. It's recommended to use the Ro
 
 ```js
 import tailwindcss from 'tailwindcss';
-import cssnano from 'cssnano';  // Minify CSS
-import remToPx from '@thedutchcoder/postcss-rem-to-px';  // Convert rem units to px
+import cssnano from 'cssnano'; // Minify CSS
+import remToPx from '@thedutchcoder/postcss-rem-to-px'; // Convert rem units to px
 
 const plugins =
     process.env['NODE_ENV'] === 'build'

@@ -11,35 +11,39 @@ const pluginTailwindcssLit = async () => {
     const config = await postcssConfig();
     const postcssDoubleEscape = {
         postcssPlugin: 'postcss-double-escape',
-        OnceExit(root) {
-            root.walkRules(rule => {
-                rule.selectors = rule.selectors.map(selector => {
-                    console.log('selector', selector);
-                    return selector.replace(/\\/g, '\\\\');
-                });
+        Rule(rule) {
+            if (!Array.isArray(rule.selectors))
+                return;
+            rule.selectors = rule.selectors.map(selector => {
+                if (typeof selector !== 'string')
+                    return selector;
+                return selector.replace(/\\/g, '\\\\');
             });
         },
     };
-    const tw = css => {
+    const tw = (css, context) => {
         const root = postcss().process(css, { parser: safe }).root;
         const applyDirectives = [];
         root.walkAtRules('apply', atRule => {
             applyDirectives.push({ atRule: atRule, parentRule: atRule.parent });
         });
         const promises = applyDirectives.map(({ atRule, parentRule }) => {
+            if (!parentRule.selector) {
+                context.thisRef.warn(`Missing selector!`, { line: context.position.line, column: context.position.column });
+                return;
+            }
+            parentRule.selector = parentRule.selector.replace(/\\/g, '\\\\');
             if (parentRule.nodes.length === 1) {
-                console.log("条件一");
-                return postcss([discardComments({ removeAll: true }), ...config.plugins,])
+                return postcss([discardComments({ removeAll: true }), ...config.plugins])
                     .process(parentRule, { from: undefined })
                     .then(result => {
                     parentRule.replaceWith(result.root);
                 });
             }
             else {
-                console.log("条件二");
                 const newRule = postcss.rule({ selector: parentRule.selector });
                 newRule.append(atRule.clone());
-                return postcss([discardComments({ removeAll: true }), ...config.plugins,])
+                return postcss([discardComments({ removeAll: true }), ...config.plugins])
                     .process(newRule, { from: undefined })
                     .then(result => {
                     parentRule.parent.insertAfter(parentRule, result.root);
@@ -47,16 +51,13 @@ const pluginTailwindcssLit = async () => {
                 });
             }
         });
-        return Promise.all(promises).then(() => {
-            return root.toString();
-        });
+        return Promise.all(promises).then(() => root.toString());
     };
     return {
         name: 'rollup-plugin-tailwindcss-lit',
         async transform(code, id) {
             if (id.includes('node_modules'))
                 return null;
-            console.log('transform:', id);
             if (id.endsWith('.ts') || id.endsWith('.js')) {
                 const ast = parse(code, { sourceType: 'module' });
                 const processNodes = [];
@@ -69,7 +70,7 @@ const pluginTailwindcssLit = async () => {
                 });
                 for (let path of processNodes) {
                     const originalCSS = generate(path.node.quasi).code.slice(1, -1);
-                    const modifiedCSS = await tw(originalCSS);
+                    const modifiedCSS = await tw(originalCSS, { thisRef: this, position: path.node.quasi.loc.start });
                     path.replaceWithSourceString(`css\`${modifiedCSS}\``);
                 }
                 const output = generate(ast, { sourceMaps: true, sourceFileName: id });

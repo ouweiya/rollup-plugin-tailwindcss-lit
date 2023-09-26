@@ -1,7 +1,5 @@
-// @ts-nocheck
-
 import postcss, { Plugin as PostcssPlugin } from 'postcss';
-import type { Plugin, TransformResult } from 'rollup';
+import type { Plugin, TransformPluginContext } from 'rollup';
 import postcssConfig from 'postcss-load-config';
 import discardComments from 'postcss-discard-comments';
 
@@ -10,30 +8,26 @@ import _generate from '@babel/generator';
 import { parse } from '@babel/parser';
 
 import safe from 'postcss-safe-parser';
-// import tailwind from 'tailwindcss';
 
 const traverse = _traverse.default;
 const generate = _generate.default;
 
-const pluginTailwindcssLit = async (): Plugin => {
+const pluginTailwindcssLit = async (): Promise<Plugin<any>> => {
     const config = await postcssConfig();
-    // console.log('config', config);
-
     // Escape
     const postcssDoubleEscape: PostcssPlugin = {
         postcssPlugin: 'postcss-double-escape',
-        OnceExit(root) {
-            root.walkRules(rule => {
-                rule.selectors = rule.selectors.map(selector => {
-                    console.log('selector', selector);
-                    return selector.replace(/\\/g, '\\\\');
-                });
+        Rule(rule) {
+            if (!Array.isArray(rule.selectors)) return;
+            rule.selectors = rule.selectors.map(selector => {
+                if (typeof selector !== 'string') return selector;
+                return selector.replace(/\\/g, '\\\\');
             });
         },
     };
 
     // Compile inline tailwind
-    const tw = css => {
+    const tw = (css: string, context: { thisRef: TransformPluginContext; position: any }) => {
         const root = postcss().process(css, { parser: safe }).root;
         const applyDirectives = [];
 
@@ -42,22 +36,22 @@ const pluginTailwindcssLit = async (): Plugin => {
         });
 
         const promises = applyDirectives.map(({ atRule, parentRule }) => {
-            // parentRule.selector = parentRule.selector.replace(/\\/g, '\\\\');
+            if (!parentRule.selector) {
+                context.thisRef.warn(`Missing selector!`, { line: context.position.line, column: context.position.column });
+                return;
+            }
+            parentRule.selector = parentRule.selector.replace(/\\/g, '\\\\');
             if (parentRule.nodes.length === 1) {
-                // 条件一
-                console.log("条件一");
-                return postcss([discardComments({ removeAll: true }), ...config.plugins, /* postcssDoubleEscape */])
+                return postcss([discardComments({ removeAll: true }), ...config.plugins])
                     .process(parentRule, { from: undefined })
                     .then(result => {
                         parentRule.replaceWith(result.root);
                     });
             } else {
-                // 条件二
-                console.log("条件二");
                 const newRule = postcss.rule({ selector: parentRule.selector });
                 newRule.append(atRule.clone());
 
-                return postcss([discardComments({ removeAll: true }), ...config.plugins, /* postcssDoubleEscape */])
+                return postcss([discardComments({ removeAll: true }), ...config.plugins])
                     .process(newRule, { from: undefined })
                     .then(result => {
                         parentRule.parent.insertAfter(parentRule, result.root);
@@ -66,16 +60,14 @@ const pluginTailwindcssLit = async (): Plugin => {
             }
         });
 
-        return Promise.all(promises).then(() => {
-            return root.toString();
-        });
+        return Promise.all(promises).then(() => root.toString());
     };
 
     return {
         name: 'rollup-plugin-tailwindcss-lit',
         async transform(code, id) {
             if (id.includes('node_modules')) return null;
-            console.log('transform:', id);
+
             // Extract template content
             if (id.endsWith('.ts') || id.endsWith('.js')) {
                 const ast = parse(code, { sourceType: 'module' });
@@ -91,7 +83,7 @@ const pluginTailwindcssLit = async (): Plugin => {
 
                 for (let path of processNodes) {
                     const originalCSS = generate(path.node.quasi).code.slice(1, -1);
-                    const modifiedCSS = await tw(originalCSS);
+                    const modifiedCSS = await tw(originalCSS, { thisRef: this, position: path.node.quasi.loc.start });
                     path.replaceWithSourceString(`css\`${modifiedCSS}\``);
                 }
 
@@ -125,7 +117,3 @@ const pluginTailwindcssLit = async (): Plugin => {
 };
 
 export default pluginTailwindcssLit;
-
-
-// 修改提取逻辑
-// 升级插件方式
