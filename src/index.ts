@@ -14,14 +14,15 @@ const generate = _generate.default;
 
 const pluginTailwindcssLit = async (): Promise<Plugin<any>> => {
     const config = await postcssConfig();
+
     // Escape
     const postcssDoubleEscape: PostcssPlugin = {
         postcssPlugin: 'postcss-double-escape',
-        Rule(rule) {
-            if (!Array.isArray(rule.selectors)) return;
-            rule.selectors = rule.selectors.map(selector => {
-                if (typeof selector !== 'string') return selector;
-                return selector.replace(/\\/g, '\\\\');
+        OnceExit(root) {
+            root.walkRules(rule => {
+                rule.selectors = rule.selectors.map(selector => {
+                    return selector.replace(/\\/g, '\\\\');
+                });
             });
         },
     };
@@ -40,9 +41,9 @@ const pluginTailwindcssLit = async (): Promise<Plugin<any>> => {
                 context.thisRef.warn(`Missing selector!`, { line: context.position.line, column: context.position.column });
                 return;
             }
-            parentRule.selector = parentRule.selector.replace(/\\/g, '\\\\');
+
             if (parentRule.nodes.length === 1) {
-                return postcss([discardComments({ removeAll: true }), ...config.plugins])
+                return postcss([discardComments({ removeAll: true }), ...config.plugins, postcssDoubleEscape])
                     .process(parentRule, { from: undefined })
                     .then(result => {
                         parentRule.replaceWith(result.root);
@@ -51,9 +52,10 @@ const pluginTailwindcssLit = async (): Promise<Plugin<any>> => {
                 const newRule = postcss.rule({ selector: parentRule.selector });
                 newRule.append(atRule.clone());
 
-                return postcss([discardComments({ removeAll: true }), ...config.plugins])
+                return postcss([discardComments({ removeAll: true }), ...config.plugins, postcssDoubleEscape])
                     .process(newRule, { from: undefined })
                     .then(result => {
+                        parentRule.selector = parentRule.selector.replace(/\\/g, '\\\\');
                         parentRule.parent.insertAfter(parentRule, result.root);
                         atRule.remove();
                     });

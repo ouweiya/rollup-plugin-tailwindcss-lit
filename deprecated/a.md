@@ -35,3 +35,15 @@ module.exports = {
 
 
 // @ts-nocheck
+
+
+// const postcssDoubleEscape: PostcssPlugin = {
+//     postcssPlugin: 'postcss-double-escape',
+//     RuleExit(rule) {
+//         if (!Array.isArray(rule.selectors)) return;
+//         rule.selectors = rule.selectors.map(selector => {
+//             if (typeof selector !== 'string') return selector;
+//             return selector.replace(/\\/g, '\\\\');
+//         });
+//     },
+// };
