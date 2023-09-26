@@ -13,7 +13,7 @@
     },
     "scripts": {
         "watch": "rimraf dist && tsc --watch",
-        "tsc": "rimraf dist && tsc"
+        "build": "rimraf dist && tsc"
     },
     "repository": {
         "type": "git",
@@ -25,7 +25,7 @@
         "tailwindcss",
         "lit",
         "lit elements",
-        "rollup plugin",
+        "tailwindcss lit",
         "tailwind",
         "lit-element",
         "static styles"
