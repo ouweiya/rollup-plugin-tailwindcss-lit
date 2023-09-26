@@ -41,7 +41,7 @@ import { dirname, resolve } from 'node:path';
 const __filename = fileURLToPath(import.meta.url);
 const cssPath = resolve(dirname(__filename), 'src/index.css'); // Absolute path
 
-plugins: [alias({ entries: [{ find: 'index.css', replacement: 'cssPath' }] }), ...];
+plugins: [alias({ entries: [{ find: 'index.css', replacement: cssPath }] }), ...];
 ```
 
 #### Compile inline CSS
