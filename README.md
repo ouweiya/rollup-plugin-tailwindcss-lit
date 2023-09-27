@@ -80,7 +80,7 @@ The [`@apply`](https://tailwindcss.com/docs/functions-and-directives#apply) dire
 #### Tailwind CSS IntelliSense supports CSS tags.
 
 ```json
-"tailwindCSS.experimental.classRegex": ["css\\s*`([^`]*)`"]
+"tailwindCSS.experimental.classRegex": [["css\\s*`([^`]*)`", "@apply\\s+([^;\\n]+?)(?:;|\\n)"]],
 ```
 
 #### Inline CSS should always include a selector.

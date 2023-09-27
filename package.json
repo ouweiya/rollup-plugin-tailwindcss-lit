@@ -1,6 +1,6 @@
 {
     "name": "rollup-plugin-tailwindcss-lit",
-    "version": "1.2.2",
+    "version": "1.2.3",
     "description": "Rollup plugin to use Tailwind CSS in Lit.",
     "type": "module",
     "main": "./dist/index.js",
