@@ -25,7 +25,7 @@ const pluginTailwindcssLit = async () => {
         root.walkAtRules('apply', atRule => {
             applyDirectives.push({ atRule: atRule, parentRule: atRule.parent });
         });
-        const promises = applyDirectives.map(({ atRule, parentRule }) => {
+        const promises = applyDirectives.reverse().map(({ atRule, parentRule }) => {
             if (!parentRule.selector) {
                 context.thisRef.warn(`Missing selector!`, { line: context.position.line, column: context.position.column });
                 return;
@@ -40,6 +40,7 @@ const pluginTailwindcssLit = async () => {
             else {
                 const newRule = postcss.rule({ selector: parentRule.selector });
                 newRule.append(atRule.clone());
+                atRule.remove();
                 return postcss([discardComments({ removeAll: true }), ...config.plugins, postcssDoubleEscape])
                     .process(newRule, { from: undefined })
                     .then(result => {
@@ -47,7 +48,6 @@ const pluginTailwindcssLit = async () => {
                         parentRule.selector = parentRule.selector.replace(/\\/g, '\\\\');
                     }
                     parentRule.parent.insertAfter(parentRule, result.root);
-                    atRule.remove();
                 });
             }
         });
