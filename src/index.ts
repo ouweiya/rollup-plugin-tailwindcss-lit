@@ -31,19 +31,19 @@ const pluginTailwindcssLit = async () => {
             // Extract template content
             if (id.endsWith('.ts') || id.endsWith('.js')) {
                 const ast = parse(code, { sourceType: 'module' });
-                const processNodes = [];
+                const taggedTemplate = [];
 
                 traverse(ast, {
                     TaggedTemplateExpression(path: any) {
-                        if (path.node.tag.name === 'css') processNodes.push(path);
+                        if (path.node.tag.name === 'css') taggedTemplate.push(path);
                     },
                 });
 
-                console.log('processNodes', processNodes.length);
-                if (!processNodes.length) return null;
+                console.log('processNodes', taggedTemplate.length);
+                if (!taggedTemplate.length) return null;
                 console.log('编译css');
 
-                const twPromises = processNodes.map(async path => {
+                const twPromises = taggedTemplate.map(async path => {
                     const originalCSS = generate(path.node.quasi).code.slice(1, -1);
                     const modifiedCSS = await compileTailwind(config, originalCSS, {
                         thisRef: this,
@@ -89,10 +89,3 @@ const pluginTailwindcssLit = async () => {
 };
 
 export default pluginTailwindcssLit;
-
-// import type { Plugin, TransformPluginContext } from 'rollup';
-// import _traverse from '@babel/traverse';
-// import { default  } from '@babel/traverse';
-
-// import _generate from '@babel/generator';
-// import {default as generate } from '@babel/generator';

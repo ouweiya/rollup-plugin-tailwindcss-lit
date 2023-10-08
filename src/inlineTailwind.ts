@@ -48,13 +48,3 @@ const compileTailwind = (config: Result, css: string, context: { thisRef: Transf
 };
 
 export default compileTailwind;
-
-// import _traverse from '@babel/traverse';
-// import _generate from '@babel/generator';
-// import { parse } from '@babel/parser';
-// import postcssConfig from 'postcss-load-config';
-// const traverse = _traverse.default;
-// const generate = _generate.default;
-// import postcssConfig from 'postcss-load-config'
-
-// import safe from 'postcss-safe-parser';
