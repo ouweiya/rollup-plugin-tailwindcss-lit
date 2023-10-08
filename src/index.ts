@@ -1,70 +1,27 @@
-import postcss, { Plugin as PostcssPlugin } from 'postcss';
-import type { Plugin, TransformPluginContext } from 'rollup';
+import postcss from 'postcss';
 import postcssConfig from 'postcss-load-config';
 import discardComments from 'postcss-discard-comments';
-
-import _traverse from '@babel/traverse';
-import _generate from '@babel/generator';
 import { parse } from '@babel/parser';
+import babelTraverse from '@babel/traverse';
+import babelGenerator from '@babel/generator';
+import type traverseType from '@babel/traverse';
+import type generatorType from '@babel/generator';
 
-import safe from 'postcss-safe-parser';
+import postcssDoubleEscape from './escape.js';
+import compileTailwind from './inlineTailwind.js';
 
-const traverse = _traverse.default;
-const generate = _generate.default;
+interface traverseInterface {
+    default?: typeof traverseType;
+}
+interface generatorInterface {
+    default?: typeof generatorType;
+}
 
-const pluginTailwindcssLit = async (): Promise<Plugin<any>> => {
+const traverse = (babelTraverse as traverseInterface).default;
+const generate = (babelGenerator as generatorInterface).default;
+
+const pluginTailwindcssLit = async () => {
     const config = await postcssConfig();
-
-    // Escape
-    const postcssDoubleEscape: PostcssPlugin = {
-        postcssPlugin: 'postcss-double-escape',
-        OnceExit(root) {
-            root.walkRules(rule => {
-                rule.selectors = rule.selectors.map(selector => {
-                    return selector.replace(/\\/g, '\\\\');
-                });
-            });
-        },
-    };
-
-    // Compile inline tailwind
-    const tw = (css: string, context: { thisRef: TransformPluginContext; position: any }) => {
-        const root = postcss().process(css, { parser: safe }).root;
-        const applyDirectives = [];
-
-        root.walkAtRules('apply', atRule => {
-            applyDirectives.push({ atRule: atRule, parentRule: atRule.parent });
-        });
-
-        const promises = applyDirectives.reverse().map(({ atRule, parentRule }) => {
-            if (!parentRule.selector) {
-                context.thisRef.warn(`Missing selector!`, { line: context.position.line, column: context.position.column });
-                return;
-            }
-
-            if (parentRule.nodes.length === 1) {
-                return postcss([discardComments({ removeAll: true }), ...config.plugins, postcssDoubleEscape])
-                    .process(parentRule, { from: undefined })
-                    .then(result => {
-                        parentRule.replaceWith(result.root);
-                    });
-            } else {
-                const newRule = postcss.rule({ selector: parentRule.selector });
-                newRule.append(atRule.clone());
-                atRule.remove();
-                return postcss([discardComments({ removeAll: true }), ...config.plugins, postcssDoubleEscape])
-                    .process(newRule, { from: undefined })
-                    .then(result => {
-                        if (!/\\\\/.test(parentRule.selector)) {
-                            parentRule.selector = parentRule.selector.replace(/\\/g, '\\\\');
-                        }
-                        parentRule.parent.insertAfter(parentRule, result.root);
-                    });
-            }
-        });
-
-        return Promise.all(promises).then(() => root.toString());
-    };
 
     return {
         name: 'rollup-plugin-tailwindcss-lit',
@@ -77,26 +34,38 @@ const pluginTailwindcssLit = async (): Promise<Plugin<any>> => {
                 const processNodes = [];
 
                 traverse(ast, {
-                    TaggedTemplateExpression(path) {
-                        if (path.node.tag.name === 'css') {
-                            processNodes.push(path);
-                        }
+                    TaggedTemplateExpression(path: any) {
+                        if (path.node.tag.name === 'css') processNodes.push(path);
                     },
                 });
 
-                for (let path of processNodes) {
+                console.log('processNodes', processNodes.length);
+                if (!processNodes.length) return null;
+                console.log('编译css');
+
+                const twPromises = processNodes.map(async path => {
                     const originalCSS = generate(path.node.quasi).code.slice(1, -1);
-                    const modifiedCSS = await tw(originalCSS, { thisRef: this, position: path.node.quasi.loc.start });
-                    path.replaceWithSourceString(`css\`${modifiedCSS}\``);
-                }
+                    const modifiedCSS = await compileTailwind(config, originalCSS, {
+                        thisRef: this,
+                        position: path.node.quasi.loc.start,
+                    });
+                    console.log('modifiedCSS', modifiedCSS);
+                    if (modifiedCSS) path.replaceWithSourceString(`css\`${modifiedCSS}\``);
+                    return !!modifiedCSS;
+                });
+
+                const res = await Promise.all(twPromises);
+                const allTruthy = res.every(v => !Boolean(v));
+                console.log('res', res);
+                console.log('allTruthy', allTruthy);
+                if (allTruthy) return null;
 
                 const output = generate(ast, { sourceMaps: true, sourceFileName: id });
+                console.log('output');
 
                 return { code: output.code, map: output.map };
-            }
-
-            // Compile CSS module
-            if (id.endsWith('.css')) {
+            } else if (id.endsWith('.css')) {
+                // Compile CSS module
                 const result = await postcss([
                     discardComments({ removeAll: true }),
                     ...config.plugins,
@@ -120,3 +89,10 @@ const pluginTailwindcssLit = async (): Promise<Plugin<any>> => {
 };
 
 export default pluginTailwindcssLit;
+
+// import type { Plugin, TransformPluginContext } from 'rollup';
+// import _traverse from '@babel/traverse';
+// import { default  } from '@babel/traverse';
+
+// import _generate from '@babel/generator';
+// import {default as generate } from '@babel/generator';

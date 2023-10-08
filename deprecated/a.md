@@ -47,3 +47,5 @@ module.exports = {
 //         });
 //     },
 // };
+
+viewport: null, deviceScaleFactor: undefined
