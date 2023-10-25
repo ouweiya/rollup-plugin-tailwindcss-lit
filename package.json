@@ -1,66 +1,72 @@
 {
-    "name": "rollup-plugin-tailwindcss-lit",
-    "version": "1.2.3",
-    "description": "Rollup plugin to use Tailwind CSS in Lit.",
-    "type": "module",
-    "main": "./dist/index.js",
-    "module": "./dist/index.js",
+  "name": "rollup-plugin-tailwindcss-lit",
+  "version": "1.2.3",
+  "description": "Rollup plugin to use Tailwind CSS in Lit.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
     "types": "./dist/index.d.ts",
-    "exports": {
-        "types": "./dist/index.d.ts",
-        "import": "./dist/index.js",
-        "default": "./dist/index.js"
-    },
-    "scripts": {
-        "watch": "rimraf dist && tsc --watch",
-        "build": "rimraf dist && tsc",
-        "test": "jest",
-        "coverage": "jest --coverage"
-    },
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/ouweiya/rollup-plugin-tailwindcss-lit"
-    },
-    "keywords": [
-        "rollup",
-        "plugin",
-        "tailwindcss",
-        "lit",
-        "lit elements",
-        "tailwindcss lit",
-        "tailwind",
-        "lit-element",
-        "static styles"
-    ],
-    "files": [
-        "!.github",
-        "!deprecated",
-        "dist",
-        "tsconfig.json",
-        "src"
-    ],
-    "author": "",
-    "license": "MIT",
-    "dependencies": {
-        "@babel/core": "^7.23.0",
-        "postcss": "^8.4.31",
-        "postcss-discard-comments": "^6.0.0",
-        "postcss-load-config": "^4.0.1",
-        "postcss-safe-parser": "^7.0.0"
-    },
-    "devDependencies": {
-        "@rollup/plugin-commonjs": "^25.0.5",
-        "@rollup/plugin-json": "^6.0.1",
-        "@rollup/plugin-node-resolve": "^15.2.2",
-        "@rollup/plugin-typescript": "^11.1.5",
-        "@types/jest": "^29.5.5",
-        "@types/node": "^20.8.3",
-        "jest": "^29.7.0",
-        "rimraf": "^5.0.5",
-        "rollup": "^4.0.2",
-        "ts-jest": "^29.1.1",
-        "ts-node": "^10.9.1",
-        "tslib": "^2.6.2",
-        "typescript": "^5.2.2"
-    }
+    "import": "./dist/index.js",
+    "default": "./dist/index.js"
+  },
+  "scripts": {
+    "watch": "rimraf dist && tsc --watch",
+    "build": "rimraf dist && tsc",
+    "playwright": "playwright test",
+    "test": "jest",
+    "coverage": "jest --coverage"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ouweiya/rollup-plugin-tailwindcss-lit"
+  },
+  "keywords": [
+    "rollup",
+    "plugin",
+    "tailwindcss",
+    "lit",
+    "lit elements",
+    "tailwindcss lit",
+    "tailwind",
+    "lit-element",
+    "static styles"
+  ],
+  "files": [
+    "!.github",
+    "!deprecated",
+    "dist",
+    "tsconfig.json",
+    "src"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@babel/core": "^7.23.0",
+    "postcss": "^8.4.31",
+    "postcss-discard-comments": "^6.0.0",
+    "postcss-load-config": "^4.0.1",
+    "postcss-safe-parser": "^7.0.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.38.1",
+    "@rollup/plugin-commonjs": "^25.0.5",
+    "@rollup/plugin-json": "^6.0.1",
+    "@rollup/plugin-node-resolve": "^15.2.2",
+    "@rollup/plugin-typescript": "^11.1.5",
+    "@thedutchcoder/postcss-rem-to-px": "^0.0.2",
+    "@types/jest": "^29.5.5",
+    "@types/node": "^20.8.3",
+    "cssnano": "^6.0.1",
+    "jest": "^29.7.0",
+    "rimraf": "^5.0.5",
+    "rollup": "^4.0.2",
+    "sinon": "^16.1.0",
+    "tailwindcss": "^3.3.3",
+    "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.1",
+    "tslib": "^2.6.2",
+    "typescript": "^5.2.2"
+  }
 }

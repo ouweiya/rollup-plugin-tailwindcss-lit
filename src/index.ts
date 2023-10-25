@@ -8,7 +8,7 @@ import type traverseType from '@babel/traverse';
 import type generatorType from '@babel/generator';
 
 import postcssDoubleEscape from './escape.js';
-import compileTailwind from './inlineTailwind.js';
+import compileTailwind from './compileTailwind.js';
 
 interface traverseInterface {
     default?: typeof traverseType;

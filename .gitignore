@@ -7,3 +7,6 @@ package-lock.json
 /playwright-report/
 /playwright/.cache/
 coverage
+/test-results/
+/playwright-report/
+/playwright/.cache/
