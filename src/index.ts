@@ -1,4 +1,4 @@
-import postcss from 'postcss';
+import postcss, { Plugin as PostcssPlugin } from 'postcss';
 import postcssConfig from 'postcss-load-config';
 import discardComments from 'postcss-discard-comments';
 import { parse } from '@babel/parser';
@@ -6,9 +6,8 @@ import babelTraverse from '@babel/traverse';
 import babelGenerator from '@babel/generator';
 import type traverseType from '@babel/traverse';
 import type generatorType from '@babel/generator';
-
-import postcssDoubleEscape from './escape.js';
-import compileTailwind from './compileTailwind.js';
+import type { TransformPluginContext } from 'rollup';
+import safe from 'postcss-safe-parser';
 
 interface traverseInterface {
     default?: typeof traverseType;
@@ -22,6 +21,59 @@ const generate = (babelGenerator as generatorInterface).default;
 
 const pluginTailwindcssLit = async () => {
     const config = await postcssConfig();
+
+    // Escape
+    const postcssDoubleEscape: PostcssPlugin = {
+        postcssPlugin: 'postcss-double-escape',
+        OnceExit(root) {
+            root.walkRules(rule => {
+                rule.selectors = rule.selectors.map(selector => {
+                    return selector.replace(/\\/g, '\\\\');
+                });
+            });
+        },
+    };
+
+    // Compile inline tailwind
+    const compileTailwind = (css: string, context: { thisRef: TransformPluginContext; position: any }) => {
+        const root = postcss().process(css, { parser: safe }).root;
+        const applyDirectives = [];
+
+        root.walkAtRules('apply', atRule => {
+            applyDirectives.push({ atRule: atRule, parentRule: atRule.parent });
+        });
+
+        if (!applyDirectives.length) return null;
+
+        const promises = applyDirectives.reverse().map(({ atRule, parentRule }) => {
+            if (!parentRule.selector) {
+                context.thisRef.warn(`Missing selector!`, { line: context.position.line, column: context.position.column });
+                return;
+            }
+
+            if (parentRule.nodes.length === 1) {
+                return postcss([discardComments({ removeAll: true }), ...config.plugins, postcssDoubleEscape])
+                    .process(parentRule, { from: undefined })
+                    .then(result => {
+                        parentRule.replaceWith(result.root);
+                    });
+            } else {
+                const newRule = postcss.rule({ selector: parentRule.selector });
+                newRule.append(atRule.clone());
+                atRule.remove();
+                return postcss([discardComments({ removeAll: true }), ...config.plugins, postcssDoubleEscape])
+                    .process(newRule, { from: undefined })
+                    .then(result => {
+                        if (!/\\\\/.test(parentRule.selector)) {
+                            parentRule.selector = parentRule.selector.replace(/\\/g, '\\\\');
+                        }
+                        parentRule.parent.insertAfter(parentRule, result.root);
+                    });
+            }
+        });
+
+        return Promise.all(promises).then(() => root.toString());
+    };
 
     return {
         name: 'rollup-plugin-tailwindcss-lit',
@@ -45,7 +97,7 @@ const pluginTailwindcssLit = async () => {
 
                 const twPromises = taggedTemplate.map(async path => {
                     const originalCSS = generate(path.node.quasi).code.slice(1, -1);
-                    const modifiedCSS = await compileTailwind(config, originalCSS, {
+                    const modifiedCSS = await compileTailwind(originalCSS, {
                         thisRef: this,
                         position: path.node.quasi.loc.start,
                     });
@@ -89,3 +141,9 @@ const pluginTailwindcssLit = async () => {
 };
 
 export default pluginTailwindcssLit;
+
+// import type { Result } from 'postcss-load-config';
+// import discardComments from 'postcss-discard-comments';
+
+// import postcssDoubleEscape from './escape.js';
+// import compileTailwind from './compileTailwind.js';

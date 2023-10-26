@@ -3,16 +3,13 @@ import discardComments from 'postcss-discard-comments';
 import safe from 'postcss-safe-parser';
 import postcssDoubleEscape from './escape.js';
 const compileTailwind = (config, css, context) => {
-    console.log('css', css);
     const root = postcss().process(css, { parser: safe }).root;
     const applyDirectives = [];
     root.walkAtRules('apply', atRule => {
         applyDirectives.push({ atRule: atRule, parentRule: atRule.parent });
     });
-    console.log('applyDirectives', applyDirectives.length);
     if (!applyDirectives.length)
         return null;
-    console.log('编译@apply');
     const promises = applyDirectives.reverse().map(({ atRule, parentRule }) => {
         if (!parentRule.selector) {
             context.thisRef.warn(`Missing selector!`, { line: context.position.line, column: context.position.column });
@@ -42,4 +39,4 @@ const compileTailwind = (config, css, context) => {
     return Promise.all(promises).then(() => root.toString());
 };
 export default compileTailwind;
-//# sourceMappingURL=inlineTailwind.js.map
+//# sourceMappingURL=compileTailwind.js.map

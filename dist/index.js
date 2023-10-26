@@ -4,12 +4,57 @@ import discardComments from 'postcss-discard-comments';
 import { parse } from '@babel/parser';
 import babelTraverse from '@babel/traverse';
 import babelGenerator from '@babel/generator';
-import postcssDoubleEscape from './escape.js';
-import compileTailwind from './inlineTailwind.js';
+import safe from 'postcss-safe-parser';
 const traverse = babelTraverse.default;
 const generate = babelGenerator.default;
 const pluginTailwindcssLit = async () => {
     const config = await postcssConfig();
+    const postcssDoubleEscape = {
+        postcssPlugin: 'postcss-double-escape',
+        OnceExit(root) {
+            root.walkRules(rule => {
+                rule.selectors = rule.selectors.map(selector => {
+                    return selector.replace(/\\/g, '\\\\');
+                });
+            });
+        },
+    };
+    const compileTailwind = (css, context) => {
+        const root = postcss().process(css, { parser: safe }).root;
+        const applyDirectives = [];
+        root.walkAtRules('apply', atRule => {
+            applyDirectives.push({ atRule: atRule, parentRule: atRule.parent });
+        });
+        if (!applyDirectives.length)
+            return null;
+        const promises = applyDirectives.reverse().map(({ atRule, parentRule }) => {
+            if (!parentRule.selector) {
+                context.thisRef.warn(`Missing selector!`, { line: context.position.line, column: context.position.column });
+                return;
+            }
+            if (parentRule.nodes.length === 1) {
+                return postcss([discardComments({ removeAll: true }), ...config.plugins, postcssDoubleEscape])
+                    .process(parentRule, { from: undefined })
+                    .then(result => {
+                    parentRule.replaceWith(result.root);
+                });
+            }
+            else {
+                const newRule = postcss.rule({ selector: parentRule.selector });
+                newRule.append(atRule.clone());
+                atRule.remove();
+                return postcss([discardComments({ removeAll: true }), ...config.plugins, postcssDoubleEscape])
+                    .process(newRule, { from: undefined })
+                    .then(result => {
+                    if (!/\\\\/.test(parentRule.selector)) {
+                        parentRule.selector = parentRule.selector.replace(/\\/g, '\\\\');
+                    }
+                    parentRule.parent.insertAfter(parentRule, result.root);
+                });
+            }
+        });
+        return Promise.all(promises).then(() => root.toString());
+    };
     return {
         name: 'rollup-plugin-tailwindcss-lit',
         async transform(code, id) {
@@ -17,20 +62,20 @@ const pluginTailwindcssLit = async () => {
                 return null;
             if (id.endsWith('.ts') || id.endsWith('.js')) {
                 const ast = parse(code, { sourceType: 'module' });
-                const processNodes = [];
+                const taggedTemplate = [];
                 traverse(ast, {
                     TaggedTemplateExpression(path) {
                         if (path.node.tag.name === 'css')
-                            processNodes.push(path);
+                            taggedTemplate.push(path);
                     },
                 });
-                console.log('processNodes', processNodes.length);
-                if (!processNodes.length)
+                console.log('processNodes', taggedTemplate.length);
+                if (!taggedTemplate.length)
                     return null;
                 console.log('编译css');
-                const twPromises = processNodes.map(async (path) => {
+                const twPromises = taggedTemplate.map(async (path) => {
                     const originalCSS = generate(path.node.quasi).code.slice(1, -1);
-                    const modifiedCSS = await compileTailwind(config, originalCSS, {
+                    const modifiedCSS = await compileTailwind(originalCSS, {
                         thisRef: this,
                         position: path.node.quasi.loc.start,
                     });

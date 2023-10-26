@@ -144,4 +144,3 @@ const plugins =
 export default { plugins };
 ```
 
-dd123
