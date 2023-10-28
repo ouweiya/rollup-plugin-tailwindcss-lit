@@ -1,7 +1,7 @@
 {
-    "include": ["src/**/*.ts"],
+    "include": ["src/**/*.ts", "e2e/**/*.ts"],
     "compilerOptions": {
-        "rootDir": "src",
+        "rootDir": "./",
         "declaration": true,
         "target": "esnext",
         "module": "esnext",

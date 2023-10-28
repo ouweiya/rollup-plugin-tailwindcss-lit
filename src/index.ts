@@ -15,6 +15,13 @@ interface traverseInterface {
 interface generatorInterface {
     default?: typeof generatorType;
 }
+interface MyModifiedRawSourceMap {
+    version: number;
+    sources: string[];
+    names: string[];
+    sourcesContent?: string[];
+    mappings: string;
+}
 
 const traverse = (babelTraverse as traverseInterface).default;
 const generate = (babelGenerator as generatorInterface).default;
@@ -91,9 +98,7 @@ const pluginTailwindcssLit = async () => {
                     },
                 });
 
-                console.log('processNodes', taggedTemplate.length);
                 if (!taggedTemplate.length) return null;
-                console.log('编译css');
 
                 const twPromises = taggedTemplate.map(async path => {
                     const originalCSS = generate(path.node.quasi).code.slice(1, -1);
@@ -101,19 +106,17 @@ const pluginTailwindcssLit = async () => {
                         thisRef: this,
                         position: path.node.quasi.loc.start,
                     });
-                    console.log('modifiedCSS', modifiedCSS);
+
                     if (modifiedCSS) path.replaceWithSourceString(`css\`${modifiedCSS}\``);
                     return !!modifiedCSS;
                 });
 
                 const res = await Promise.all(twPromises);
                 const allTruthy = res.every(v => !Boolean(v));
-                console.log('res', res);
-                console.log('allTruthy', allTruthy);
+
                 if (allTruthy) return null;
 
                 const output = generate(ast, { sourceMaps: true, sourceFileName: id });
-                console.log('output');
 
                 return { code: output.code, map: output.map };
             } else if (id.endsWith('.css')) {
@@ -132,7 +135,7 @@ const pluginTailwindcssLit = async () => {
 
                 const csscode = `import { css } from 'lit';\nconst styles = css\`${result.css}\`;\nexport default styles;`;
 
-                return { code: csscode, map: result.map.toJSON() };
+                return { code: csscode, map: result.map.toJSON() as any as MyModifiedRawSourceMap };
             }
 
             return null;
@@ -141,9 +144,3 @@ const pluginTailwindcssLit = async () => {
 };
 
 export default pluginTailwindcssLit;
-
-// import type { Result } from 'postcss-load-config';
-// import discardComments from 'postcss-discard-comments';
-
-// import postcssDoubleEscape from './escape.js';
-// import compileTailwind from './compileTailwind.js';
