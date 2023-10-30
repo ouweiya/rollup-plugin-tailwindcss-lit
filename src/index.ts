@@ -26,7 +26,7 @@ interface MyModifiedRawSourceMap {
 const traverse = (babelTraverse as traverseInterface).default;
 const generate = (babelGenerator as generatorInterface).default;
 
-const pluginTailwindcssLit = async () => {
+const pluginTailwindcssLit = async (/* fake?: any */) => {
     const config = await postcssConfig();
 
     // Escape
@@ -50,21 +50,29 @@ const pluginTailwindcssLit = async () => {
             applyDirectives.push({ atRule: atRule, parentRule: atRule.parent });
         });
 
-        if (!applyDirectives.length) return null;
+        if (!applyDirectives.length) {
+            // fake('没有@apply时返回');
+            return null;
+        }
+
+        // fake('有@apply');
 
         const promises = applyDirectives.reverse().map(({ atRule, parentRule }) => {
             if (!parentRule.selector) {
+                // fake('缺少选择器');
                 context.thisRef.warn(`Missing selector!`, { line: context.position.line, column: context.position.column });
                 return;
             }
-
+            // fake('记录@apply数量');
             if (parentRule.nodes.length === 1) {
+                // fake('声明中只有@apply时替换');
                 return postcss([discardComments({ removeAll: true }), ...config.plugins, postcssDoubleEscape])
                     .process(parentRule, { from: undefined })
                     .then(result => {
                         parentRule.replaceWith(result.root);
                     });
             } else {
+                // fake('声明中有其它样式时插入');
                 const newRule = postcss.rule({ selector: parentRule.selector });
                 newRule.append(atRule.clone());
                 atRule.remove();
@@ -72,6 +80,7 @@ const pluginTailwindcssLit = async () => {
                     .process(newRule, { from: undefined })
                     .then(result => {
                         if (!/\\\\/.test(parentRule.selector)) {
+                            // fake('斜杠转义');
                             parentRule.selector = parentRule.selector.replace(/\\/g, '\\\\');
                         }
                         parentRule.parent.insertAfter(parentRule, result.root);
@@ -89,16 +98,24 @@ const pluginTailwindcssLit = async () => {
 
             // Extract template content
             if (id.endsWith('.ts') || id.endsWith('.js')) {
+                // fake('js,ts分支');
                 const ast = parse(code, { sourceType: 'module' });
                 const taggedTemplate = [];
 
                 traverse(ast, {
                     TaggedTemplateExpression(path: any) {
-                        if (path.node.tag.name === 'css') taggedTemplate.push(path);
+                        if (path.node.tag.name === 'css') {
+                            taggedTemplate.push(path);
+                            // fake('记录标签模板数量');
+                        }
                     },
                 });
 
-                if (!taggedTemplate.length) return null;
+                if (!taggedTemplate.length) {
+                    // fake('没有标签模板');
+                    return null;
+                }
+                // fake('有标签模板');
 
                 const twPromises = taggedTemplate.map(async path => {
                     const originalCSS = generate(path.node.quasi).code.slice(1, -1);
@@ -107,19 +124,29 @@ const pluginTailwindcssLit = async () => {
                         position: path.node.quasi.loc.start,
                     });
 
-                    if (modifiedCSS) path.replaceWithSourceString(`css\`${modifiedCSS}\``);
+                    if (modifiedCSS) {
+                        // fake('编译CSS为真');
+                        path.replaceWithSourceString(`css\`${modifiedCSS}\``);
+                    }
+
                     return !!modifiedCSS;
                 });
 
                 const res = await Promise.all(twPromises);
-                const allTruthy = res.every(v => !Boolean(v));
+                const allFalse = res.every(v => !Boolean(v));
 
-                if (allTruthy) return null;
+                if (allFalse) {
+                    // fake('全部标签模板不包含@apply时返回');
+                    return null;
+                }
+
+                // fake('所有标签模板中包含@apply');
 
                 const output = generate(ast, { sourceMaps: true, sourceFileName: id });
 
                 return { code: output.code, map: output.map };
             } else if (id.endsWith('.css')) {
+                // fake('css分支');
                 // Compile CSS module
                 const result = await postcss([
                     discardComments({ removeAll: true }),

@@ -1,5 +1,6 @@
 {
-    "include": ["src/**/*.ts", "e2e/**/*.ts"],
+    // "include": ["src/**/*.ts", "e2e/**/*.ts", "types"],
+    "include": ["src/**/*.ts"],
     "compilerOptions": {
         "rootDir": "./",
         "declaration": true,

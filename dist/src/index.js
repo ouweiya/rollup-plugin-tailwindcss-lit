@@ -25,8 +25,9 @@ const pluginTailwindcssLit = async () => {
         root.walkAtRules('apply', atRule => {
             applyDirectives.push({ atRule: atRule, parentRule: atRule.parent });
         });
-        if (!applyDirectives.length)
+        if (!applyDirectives.length) {
             return null;
+        }
         const promises = applyDirectives.reverse().map(({ atRule, parentRule }) => {
             if (!parentRule.selector) {
                 context.thisRef.warn(`Missing selector!`, { line: context.position.line, column: context.position.column });
@@ -65,33 +66,31 @@ const pluginTailwindcssLit = async () => {
                 const taggedTemplate = [];
                 traverse(ast, {
                     TaggedTemplateExpression(path) {
-                        if (path.node.tag.name === 'css')
+                        if (path.node.tag.name === 'css') {
                             taggedTemplate.push(path);
+                        }
                     },
                 });
-                console.log('processNodes', taggedTemplate.length);
-                if (!taggedTemplate.length)
+                if (!taggedTemplate.length) {
                     return null;
-                console.log('编译css');
+                }
                 const twPromises = taggedTemplate.map(async (path) => {
                     const originalCSS = generate(path.node.quasi).code.slice(1, -1);
                     const modifiedCSS = await compileTailwind(originalCSS, {
                         thisRef: this,
                         position: path.node.quasi.loc.start,
                     });
-                    console.log('modifiedCSS', modifiedCSS);
-                    if (modifiedCSS)
+                    if (modifiedCSS) {
                         path.replaceWithSourceString(`css\`${modifiedCSS}\``);
+                    }
                     return !!modifiedCSS;
                 });
                 const res = await Promise.all(twPromises);
-                const allTruthy = res.every(v => !Boolean(v));
-                console.log('res', res);
-                console.log('allTruthy', allTruthy);
-                if (allTruthy)
+                const allFalse = res.every(v => !Boolean(v));
+                if (allFalse) {
                     return null;
+                }
                 const output = generate(ast, { sourceMaps: true, sourceFileName: id });
-                console.log('output');
                 return { code: output.code, map: output.map };
             }
             else if (id.endsWith('.css')) {
