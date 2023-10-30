@@ -1,6 +1,6 @@
 {
   "name": "rollup-plugin-tailwindcss-lit",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "Rollup plugin to use Tailwind CSS in Lit.",
   "type": "module",
   "main": "./dist/index.js",
@@ -13,7 +13,7 @@
   },
   "scripts": {
     "watch": "rimraf dist && tsc --watch",
-    "build": "rimraf dist && tsc",
+    "build": "rimraf dist && tsc -p tsconfig.build.json",
     "playwright": "playwright test e2e/process-testing.spec.ts",
     "nyc": "nyc playwright test e2e/process-testing.spec.ts",
 
